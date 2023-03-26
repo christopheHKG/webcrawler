@@ -4,7 +4,7 @@ function getURLsFromHTML(htmlBody, baseURL) {
     //hmtlBody: HMTL text, string format
     //baseURL: URL,string format 
     //return an array of strings representing absolute URLs
-    // baseURL is not supposed to have a final '/'
+    // note: baseURL is not supposed to have a final '/'
 
     const urls = [];
 
