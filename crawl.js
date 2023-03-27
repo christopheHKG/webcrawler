@@ -1,5 +1,40 @@
 const { JSDOM } = require("jsdom");
 
+async function crawlPage(currentURL) {
+    console.log(`now crawling: ${currentURL}`);
+
+    try {
+        const resp = await fetch(currentURL);
+
+        // check for unsuccessful status response:
+        console.log(resp.status);
+        if (resp.status > 399) {
+            console.log(`error in fetch with status code: ${resp.status} on page ${currentURL}`);
+            return;
+        }
+
+        //check that the fetch requests is returning http content:
+        const contentType = resp.headers.get('content-type');
+        // console.log(resp.headers);
+        console.log(contentType);
+        if (!contentType.includes("text/html")) {
+            console.log(`wrong html response, wrong content type: ${contentType} on page: ${currentURL}`);
+            return;
+        }
+
+        // console.log(await resp.text());
+    } catch (err) {
+        console.log(`error in fetch: ${err.message} on page: ${currentURL}`);
+    }
+
+}
+
+crawlPage('https://wagslane.dev');
+// crawlPage('https://wagslane.dev/sitemap.xml');
+
+// crawlPage('https://wagslane.dev/garbagePath');
+
+
 function getURLsFromHTML(htmlBody, baseURL) {
     //hmtlBody: HMTL text, string format
     //baseURL: URL,string format 
