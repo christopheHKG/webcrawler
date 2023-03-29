@@ -1,6 +1,25 @@
 const { JSDOM } = require("jsdom");
 
-async function crawlPage(currentURL) {
+async function crawlPage(baseURL, currentURL, pages) {
+
+    // stop cralwing if currentURL is not on the baseURL domain:
+    const baseURLObj = new URL(baseURL);
+    const currentURLObj = new URL(currentURL);
+
+    if (currentURLObj.hostname != baseURLObj.hostname) {
+        return pages;
+    }
+
+    //check if we are processing a link already processed:
+    const normalizedCurrentURL = normalizeURL(currentURL);
+    if (pages[normalizedCurrentURL] > 0) {
+        pages[normalizedCurrentURL]++;
+        return pages;
+    }
+
+    //add currentURL in pages:
+    pages[normalizedCurrentURL] = 1;
+
     console.log(`now crawling: ${currentURL}`);
 
     try {
@@ -10,7 +29,7 @@ async function crawlPage(currentURL) {
         console.log(resp.status);
         if (resp.status > 399) {
             console.log(`error in fetch with status code: ${resp.status} on page ${currentURL}`);
-            return;
+            return pages;
         }
 
         //check that the fetch requests is returning http content:
@@ -19,21 +38,23 @@ async function crawlPage(currentURL) {
         console.log(contentType);
         if (!contentType.includes("text/html")) {
             console.log(`wrong html response, wrong content type: ${contentType} on page: ${currentURL}`);
-            return;
+            return pages;
         }
 
         // console.log(await resp.text());
+        const htmlBody = await resp.text();
+        const nextURLs = getURLsFromHTML(htmlBody, baseURL);
+        for (const nextURL of nextURLs) {
+            pages = await crawlPage(baseURL, nextURL, pages);
+        }
+
     } catch (err) {
         console.log(`error in fetch: ${err.message} on page: ${currentURL}`);
     }
 
+    return pages;
+
 }
-
-crawlPage('https://wagslane.dev');
-// crawlPage('https://wagslane.dev/sitemap.xml');
-
-// crawlPage('https://wagslane.dev/garbagePath');
-
 
 function getURLsFromHTML(htmlBody, baseURL) {
     //hmtlBody: HMTL text, string format
@@ -106,5 +127,6 @@ function normalizeURL(baseURL) {
 
 module.exports = {
     normalizeURL,
-    getURLsFromHTML
+    getURLsFromHTML,
+    crawlPage
 }
