@@ -1,5 +1,6 @@
 const { test, expect } = require('@jest/globals');
 const { normalizeURL, getURLsFromHTML } = require('./crawl.js');
+const { sortPages } = require('./report.js');
 
 // testing normalizeURL function:
 
@@ -34,7 +35,7 @@ test('get absolute URLs', () => {
     const actual = getURLsFromHTML(inputHTMLBody, inputBaseURL);
     const expected = ["https://blog.boot.dev/path/", "https://blog.boot.dev/"];
     expect(actual).toEqual(expected)
-})
+});
 
 test('get relative URLs', () => {
     const inputHTMLBody = `
@@ -48,7 +49,7 @@ test('get relative URLs', () => {
     const actual = getURLsFromHTML(inputHTMLBody, inputBaseURL);
     const expected = ["https://blog.boot.dev/path/"];
     expect(actual).toEqual(expected)
-})
+});
 
 test('get both absolute & relative URLs', () => {
     const inputHTMLBody = `
@@ -63,7 +64,7 @@ test('get both absolute & relative URLs', () => {
     const actual = getURLsFromHTML(inputHTMLBody, inputBaseURL);
     const expected = ["https://blog.boot.dev/path1/", "https://blog.boot.dev/path2/"];
     expect(actual).toEqual(expected)
-})
+});
 
 test('invalid  URL', () => {
     const inputHTMLBody = `
@@ -77,4 +78,21 @@ test('invalid  URL', () => {
     const actual = getURLsFromHTML(inputHTMLBody, inputBaseURL);
     const expected = [];
     expect(actual).toEqual(expected)
-})
+});
+
+// test for the sortPages function:
+
+test('sorting URLs with different numbers', () => {
+    const pages = {
+        'url1': 10,
+        'url2': 50,
+        'url3': 30
+    }
+    const actual = sortPages(pages);
+    const expected = [
+        ['url2', 50],
+        ['url3', 30],
+        ['url1', 10]
+    ];
+    expect(actual).toEqual(expected)
+});

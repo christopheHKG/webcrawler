@@ -1,5 +1,13 @@
 const { JSDOM } = require("jsdom");
 
+module.exports = {
+    normalizeURL,
+    getURLsFromHTML,
+    crawlPage
+}
+
+// main function, called recursively:
+
 async function crawlPage(baseURL, currentURL, pages) {
 
     // stop cralwing if currentURL is not on the baseURL domain:
@@ -26,7 +34,6 @@ async function crawlPage(baseURL, currentURL, pages) {
         const resp = await fetch(currentURL);
 
         // check for unsuccessful status response:
-        console.log(resp.status);
         if (resp.status > 399) {
             console.log(`error in fetch with status code: ${resp.status} on page ${currentURL}`);
             return pages;
@@ -34,14 +41,12 @@ async function crawlPage(baseURL, currentURL, pages) {
 
         //check that the fetch requests is returning http content:
         const contentType = resp.headers.get('content-type');
-        // console.log(resp.headers);
-        console.log(contentType);
         if (!contentType.includes("text/html")) {
             console.log(`wrong html response, wrong content type: ${contentType} on page: ${currentURL}`);
             return pages;
         }
 
-        // console.log(await resp.text());
+        //read HMTL body, extract all the links, and crawl over them
         const htmlBody = await resp.text();
         const nextURLs = getURLsFromHTML(htmlBody, baseURL);
         for (const nextURL of nextURLs) {
@@ -49,12 +54,15 @@ async function crawlPage(baseURL, currentURL, pages) {
         }
 
     } catch (err) {
+        // catch invalid html links
         console.log(`error in fetch: ${err.message} on page: ${currentURL}`);
     }
 
     return pages;
 
 }
+
+// helper function 1: extract hmtl link from an html webpage
 
 function getURLsFromHTML(htmlBody, baseURL) {
     //hmtlBody: HMTL text, string format
@@ -93,6 +101,8 @@ function getURLsFromHTML(htmlBody, baseURL) {
     return urls;
 }
 
+// helper function 2: return URL in normalized format (absolute):
+
 function normalizeURL(baseURL) {
     //return a normalized version of the URL as a string
     // input and output formats are both string
@@ -118,15 +128,4 @@ function normalizeURL(baseURL) {
     //return the formatted url hostname+pathname
     // console.log(urlHostname + urlPathname);
     return urlHostname + urlPathname;
-}
-
-// normalizeURL('https://w3schools.com/js/js_string_methods.asp/');
-// normalizeURL('http://google.com/');
-// normalizeURL('https://www.goOGLe.com');
-// normalizeURL('https://googLe.com/');
-
-module.exports = {
-    normalizeURL,
-    getURLsFromHTML,
-    crawlPage
 }
